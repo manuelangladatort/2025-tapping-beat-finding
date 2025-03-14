@@ -588,7 +588,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                     """
                     <h3>Recording test</h3>
                     <hr>
-                    <h4>Please remain silent while we play a sound and record it</h4>
+                    <h3>Please remain silent while we play a sound and record it</h3>
                     """
                 ),
             ),
@@ -620,7 +620,8 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     """
-                    <h4>The recording quality of your laptop is not good</h4>
+                    <h3>The recording quality of your laptop is not good</h3>
+                    <hr>
                     This may have many reasons. Please try to do one or more of the following:
                     <ol><li>Increase the volumne of your laptop.</li>
                         <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
@@ -628,6 +629,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                         <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
                     </ol>
                     We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                    <hr>
                     """
                 ),
                 time_estimate=5,
@@ -636,9 +638,11 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     """
-                    <h4>The recording quality of your laptop is good</h4>
+                    <h3>The recording quality of your laptop is good</h3>
+                    <hr>
                     We will try some more trials.
                     To complete the experiment and get the full reward, you will need to have a good recording quality in all trials.
+                    <hr>
                     """
                 ),
                 time_estimate=5,
