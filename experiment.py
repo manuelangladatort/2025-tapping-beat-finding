@@ -9,7 +9,7 @@ from matplotlib.gridspec import GridSpec
 import os
 
 from markupsafe import Markup
-from repp.analysis import REPPAnalysis
+# from repp.analysis import REPPAnalysis
 from repp.config import sms_tapping
 from repp.stimulus import REPPStimulus
 from repp.utils import save_json_to_file, save_samples_to_file
@@ -23,9 +23,9 @@ from psynet.timeline import ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.audio import AudioRecordTrial
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
-# Import enhanced analysis functions from separate module
-from .repp_beatfinding import (
-    enhanced_tapping_analysis,
+# Import beat detection analysis functions from separate module
+from .repp_beatfinding.beat_detection import (
+    do_beat_detection_analysis,
 )
 
 # repp
@@ -54,6 +54,22 @@ DURATION_ESTIMATED_TRIAL = 40
 # failing criteria
 MIN_RAW_TAPS = 10
 MAX_RAW_TAPS = 500
+
+
+# Config wrapper to include MIN_RAW_TAPS and MAX_RAW_TAPS for beat detection analysis
+class ConfigWithThresholds:
+    """Wrapper around sms_tapping config that adds MIN_RAW_TAPS and MAX_RAW_TAPS attributes."""
+    def __init__(self, base_config):
+        # Copy all attributes from base_config
+        for attr in dir(base_config):
+            if not attr.startswith('_'):
+                try:
+                    setattr(self, attr, getattr(base_config, attr))
+                except AttributeError:
+                    pass  # Skip attributes that can't be read
+        # Add custom thresholds from experiment settings
+        self.MIN_RAW_TAPS = MIN_RAW_TAPS
+        self.MAX_RAW_TAPS = MAX_RAW_TAPS
 
 
 def get_prolific_settings():
@@ -282,25 +298,29 @@ class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
         stim_name = info["stim_name"]
         title_in_graph = "Participant {}".format(self.participant_id)
         
-        # Use enhanced analysis instead of basic analysis
-        # Pass the stimulus info to the analysis function
-        _, extracted_onsets, stats = enhanced_tapping_analysis(
-            audio_file, title_in_graph, output_plot, stim_info=info)
+        # Create a config object with MIN_RAW_TAPS and MAX_RAW_TAPS from experiment settings
+        config = ConfigWithThresholds(sms_tapping)
         
-        # Extract the quality results from stats
-        is_failed = stats.get("failed", True)
-        reason = stats.get("reason", "Analysis failed")
+        # Use beat detection analysis
+        # Pass the stimulus info and config to the analysis function
+        output, analysis, is_failed = do_beat_detection_analysis(
+            audio_file, title_in_graph, output_plot, stim_info=info, config=config)
+                
+        # Extract the quality results from is_failed
+        is_failed_flag = is_failed.get("failed", True)
+        reason = is_failed.get("reason", "Analysis failed")
 
-        extracted_onsets_json = json.dumps(extracted_onsets, cls=NumpySerializer)
-        stats = json.dumps(stats, cls=NumpySerializer)
+        extracted_onsets_json = json.dumps(output, cls=NumpySerializer)
+        analysis_json = json.dumps(analysis, cls=NumpySerializer)
         
         return {
-            "failed": is_failed,
+            "failed": is_failed_flag,
             "reason": reason,
             "extracted_onsets": extracted_onsets_json,
-            "stats": stats,
+            "analysis": analysis_json,
             "stim_name": stim_name,
         }
+
 
 class TapTrial(TapTrialAnalysis):
     def show_trial(self, experiment, participant):
@@ -479,7 +499,7 @@ class Exp(psynet.experiment.Experiment):
             NoConsent(),
             welcome(),
             # REPPVolumeCalibrationMusic(),
-            ISO_tapping,
+            # ISO_tapping,
             music_tapping,
             SuccessfulEndPage(),
         )
@@ -495,6 +515,6 @@ class Exp(psynet.experiment.Experiment):
             SuccessfulEndPage(),
         )
 
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
+    # def __init__(self, session=None):
+    #     super().__init__(session)
+    #     self.initial_recruitment_size = 1
