@@ -1,0 +1,15 @@
+{
+    "stim_duration": 162.48666666666668,
+    "stim_onsets": [],
+    "stim_shifted_onsets": [],
+    "onset_is_played": [],
+    "markers_onsets": [
+        2000.0,
+        2280.0,
+        2510.0,
+        158486.67,
+        158766.67,
+        158996.67
+    ],
+    "stim_name": "beat_finding_music"
+}
